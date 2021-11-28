@@ -49,18 +49,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.codelab.theming.R
 import com.codelab.theming.data.Post
 import com.codelab.theming.data.PostRepo
+import com.codelab.theming.ui.start.theme.JetnewsTheme
 import java.util.Locale
 
+//MaterialTheme에 매개변수를 지정하지 않을 경우 기본인 baseline 이 적용된다.
+//스타일 관련 코드를 중앙에서 집중 관리하려면, MaterialTheme 을 래핑해서 자신만의 composable 을 만드는 것이 좋다.
 @Composable
 fun Home() {
     val featured = remember { PostRepo.getFeaturedPost() }
     val posts = remember { PostRepo.getPosts() }
-    MaterialTheme {
+    JetnewsTheme {
         Scaffold(
             topBar = { AppBar() }
         ) { innerPadding ->
@@ -86,6 +90,7 @@ fun Home() {
     }
 }
 
+
 @Composable
 private fun AppBar() {
     TopAppBar(
@@ -108,14 +113,21 @@ fun Header(
     text: String,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = text,
+    Surface(
+        color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f),
+        contentColor = MaterialTheme.colors.primary,
         modifier = modifier
-            .fillMaxWidth()
-            .background(Color.LightGray)
-            .semantics { heading() }
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    )
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.subtitle2,
+            modifier = modifier
+                .fillMaxWidth()
+                .background(Color.LightGray)
+                .semantics { heading() }
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+    }
 }
 
 @Composable
@@ -166,7 +178,13 @@ private fun PostMetadata(
         append(divider)
         append(stringResource(R.string.read_time, post.metadata.readTimeMinutes))
         append(divider)
+        val tagStyle = MaterialTheme.typography.overline.toSpanStyle().copy(
+            background = MaterialTheme.colors.primary.copy(alpha = 0.1f)
+        )
         post.tags.forEachIndexed { index, tag ->
+            withStyle(tagStyle) {
+                append(" ${tag.toUpperCase()} ")
+            }
             if (index != 0) {
                 append(tagDivider)
             }
@@ -217,7 +235,18 @@ private fun PostItemPreview() {
 @Composable
 private fun FeaturedPostPreview() {
     val post = remember { PostRepo.getFeaturedPost() }
-    FeaturedPost(post = post)
+    JetnewsTheme {
+        FeaturedPost(post = post)
+    }
+}
+
+@Preview("Featured Post • Dark")
+@Composable
+private fun FeaturedPostDarkPreview() {
+    val post = remember { PostRepo.getFeaturedPost() }
+    JetnewsTheme(darkTheme = true) {
+        FeaturedPost(post = post)
+    }
 }
 
 @Preview("Home")
